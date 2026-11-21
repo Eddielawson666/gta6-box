@@ -183,9 +183,7 @@ def main():
     out.mkdir(parents=True, exist_ok=True)
 
     existing = set(f.stem for f in out.glob("*.html"))
-        api_key = os.environ.get("OPENAI_API_KEY")
-    if not api_key:
-        raise SystemExit("ERRORE: OPENAI_API_KEY non trovata")
+        client = OpenAI(api_key=os.environ["OPENAI_API_KEY"])  
     client = OpenAI(api_key=api_key)
 
 
