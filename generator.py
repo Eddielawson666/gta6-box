@@ -183,8 +183,7 @@ def main():
     out.mkdir(parents=True, exist_ok=True)
 
     existing = set(f.stem for f in out.glob("*.html"))
-        client = OpenAI(api_key=os.environ["OPENAI_API_KEY"])  
-    client = OpenAI(api_key=api_key)
+    client = OpenAI(api_key=os.environ["OPENAI_API_KEY"])
 
 
     done = 0
