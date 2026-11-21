@@ -20,8 +20,6 @@ jobs:
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
         run: |
-          WEEK=$(date +%V)
-          START=$(( (10#$WEEK % 2) * 8 ))
           python generator.py --niche gta6 --count 15 --output ./public/articles --domain gta6-index.com
 
       - name: Commit and push
@@ -29,15 +27,5 @@ jobs:
           git config user.name "gta6-bot"
           git config user.email "bot@gta6-index.com"
           git add -A
-          git diff --cached --quiet || git commit -m "auto: nuovi articoli ${{ github.run_id }}"
+          git diff --cached --quiet || git commit -m "auto: nuovi articoli"
           git push
-
-      - name: Deploy Netlify
-        uses: netlify/build@v3
-        env:
-          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
-          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
-
-      - name: Publish
-        run: |
-          netlify deploy --dir=public --prod
