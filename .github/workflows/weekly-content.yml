@@ -1,0 +1,43 @@
+name: GTA6 Weekly Content
+on:
+  schedule:
+    - cron: "0 7 * * 1,4"
+  workflow_dispatch: {}
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - run: pip install openai
+
+      - name: Generate
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        run: |
+          WEEK=$(date +%V)
+          START=$(( (10#$WEEK % 2) * 8 ))
+          python generator.py --niche gta6 --count 8 --output ./public/articles --domain gta6-index.com --start $START
+
+      - name: Commit and push
+        run: |
+          git config user.name "gta6-bot"
+          git config user.email "bot@gta6-index.com"
+          git add -A
+          git diff --cached --quiet || git commit -m "auto: nuovi articoli ${{ github.run_id }}"
+          git push
+
+      - name: Deploy Netlify
+        uses: netlify/build@v3
+        env:
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
+
+      - name: Publish
+        run: |
+          netlify deploy --dir=public --prod
