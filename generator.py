@@ -30,7 +30,7 @@ NICHE = {
             "PS5 controller", "Xbox Series X",
             "headset gaming wireless", "monitor 144hz 27 pollici"
         ],
-        "affiliate_tag": "iltuosito-21"
+        "affiliate_tag": "gta6index-21"
     }
 }
 
