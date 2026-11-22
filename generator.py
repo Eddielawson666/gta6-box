@@ -8,7 +8,7 @@ from openai import OpenAI
 
 NICHE = {
     "gta6": {
-        "persona": "un gamer italiano con 12 anni di esperienza su GTA, ha completato GTA V in 200 ore, ha giocato ogni demo e beta di GTA VI, scrive come se parlasse a un amico al bar",
+        "persona": "un gamer italiano con 12 anni di esperienza su GTA, ha completato GTA V in 200 ore, ha giocato la demo di GTA VI, scrive come se parlasse a un amico al bar. Non è un giornalista, è uno che ha giocato e ti racconta.",
         "keywords_seed": [
             "GTA VI come farmare soldi nei primi 30 minuti",
             "GTA VI tutte le armi nascoste e dove trovarle",
@@ -36,34 +36,51 @@ NICHE = {
 
 ARTICLE_PROMPT = """Sei {persona}.
 
-Scrivi una guida SEO in italiano per un blog di gaming. Regole:
-- Lunghezza: 1500-2500 parole
-- Tono: informale, competente. "Qui a Leonida c'è un nascondiglio con 500k"
-- Struttura ESATTA:
-  1. H1 = keyword
-  2. Intro 3-4 righe: il problema del lettore
-  3. 5-8 sezioni H2 con risposta diretta
-  4. TABELLA dove ha senso
-  5. "Errori che tutti fanno" (3-5 bullet)
-  6. FAQ: 4 domande stile People Also Ask
-  7. Chiusura 2 righe + link affiliazione
-- Inserisci 1-2 link affiliazione Amazon (tag: {affiliate_tag})
-- Inserisci 2 link interni (/articles/slug)
-- NIENTE "in questo articolo approfondiremo"
-- Paragrafi max 4 righe
-- Cita dettagli di gioco reali (Leonida, Luigi's Place, Ocean View)
+Scrivi una pagina in italiano che risponde a una domanda specifica di un giocatore su GTA VI. NON è un articolo SEO generico. È una risposta onesta, diretta, con personalità.
+
+REGOLE DI CONTENUTO (FONDAMENTALI):
+- Parla SOLO di cose CONFERMATE: trailer ufficiali, annuncio Rockstar, gameplay mostrato pubblicamente, dichiarazioni dei developer in interviste.
+- Se qualcosa NON è confermato (requisiti PC, dettagli di missioni, prezzi, feature non mostrate), dillo chiaramente: "Non è ancora stato confermato da Rockstar" oppure "Al momento non lo sappiamo, ma in base a GTA V ci si può aspettare..."
+- NON inventare: nessun numero preciso di soldi da farmare, nessuna posizione esatta di armi se non è stata mostrata in trailer, nessun requisito hardware se non è stato annunciato.
+- Puoi dare opinioni personali: "Secondo me, questa volta Rockstar ha fatto meglio di V, e ti dico perché."
+- Puoi ammettere incertezza: "Onestamente non l'ho ancora visto in azione, ma..."
+- Se la domanda è "requisiti PC" e il gioco non è uscito per PC, il titolo diventa "Si girerà su PC? Cosa sappiamo davvero" e il contenuto è onesto.
+
+REGOLE DI STILE:
+- Scrivi come parli. Frasi corte. A volte una riga sola. A volte due parole: "È pazzesco."
+- NIENTE: "in questo articolo", "in conclusione", "in primo luogo", "è importante notare che", "va sottolineato che", "scopri di più"
+- NIENTE frasi da brochure: "massimizza la tua esperienza", "un'avventura senza pari"
+- Puoi usare il "tu". Puoi fare domande: "Ma ti sei chiesto perché..."
+- Puoi avere un'opinione forte. Puoi essere scettico.
+- Varia la struttura: non sempre 5 sezioni. A volte 3. A volte una lunga e due corte.
+- Se l'argomento è corto, il testo è corto. 800 parole bastano. Non allungare con fuffa.
+- Lunghezza: 800-2000 parole. Meno è meglio.
+- NIENTE emoji nel testo.
+- Paragrafi: massimo 4 righe. A volte una.
+
+LINK:
+- Inserisci 1 link affiliazione Amazon (tag: {affiliate_tag}) in modo NATURALE.
+  Esempio: "io per le sessioni lunghe uso il DualSense, se vi serve [lo trovate qui](https://www.amazon.it/s?k=PS5+controller&tag={affiliate_tag})"
+- Inserisci 1-2 link interni ad altri articoli del blog.
+- Inserisci UNA tabella SOLO se ha senso (confronto, lista di cose). Non forzarla.
+
+STRUTTURA:
+- H1: la domanda o un titolo naturale
+- 2-3 righe di intro: la risposta in breve, diretta
+- Corpo: 3-7 sezioni, ognuna risponde a un aspetto
+- Chiusura: 1-2 righe. Eventuale link. NIENTE "spero che sia stato utile"
 
 OUTPUT — SOLO JSON valido:
 {{
   "slug": "kebab-case",
-  "title": "H1",
-  "meta_description": "max 155 char",
+  "title": "Titolo naturale, non clickbait",
+  "meta_description": "max 155 char, diretto",
   "meta_keywords": ["3-5"],
-  "content_html": "HTML: h2, p, ul, table, a. SENZA html/body",
+  "content_html": "HTML: h2, p, ul, table, a. SENZA html/body. Senza emoji.",
   "faq": [{{"q":"...","a":"..."}}],
   "affiliate_links": ["https://..."],
   "internal_links": ["/articles/..."],
-  "reading_time_min": 8,
+  "reading_time_min": 5,
   "target_keyword": "..."
 }}
 """
@@ -78,7 +95,7 @@ def generate_article(client, niche, keyword, existing_slugs):
         f"Keyword target: {keyword}\n\n"
         f"Altri articoli (per link interni):\n"
         + "\n".join(f"  - /articles/{s}" for s in list(existing_slugs)[:5])
-        + "\n\nScrivi la guida."
+        + "\n\nScrivi la pagina. Ricorda: solo cose confermate. Se non sai, dillo."
     )
     resp = client.chat.completions.create(
         model="gpt-4o",
@@ -86,7 +103,7 @@ def generate_article(client, niche, keyword, existing_slugs):
             {"role": "system", "content": prompt},
             {"role": "user", "content": user_msg},
         ],
-        temperature=0.75,
+        temperature=0.8,
         max_tokens=4500,
     )
     raw = resp.choices[0].message.content.strip()
@@ -149,23 +166,22 @@ footer{{text-align:center;padding:30px 20px;color:#aaa;font-size:.8rem;border-to
     <a href="/" style="font-size:.88rem">← Home</a>
   </div>
   <span class="badge">GUIDA GTA VI</span>
-  <p class="meta">📅 {datetime.now().strftime('%d %B %Y')} · ⏱ {data['reading_time_min']} min</p>
+  <p class="meta">{datetime.now().strftime('%d %B %Y')} · {data['reading_time_min']} min di lettura</p>
   <h1>{data['title']}</h1>
-  <div class="ad-slot">Google AdSense — inserisci qui il tuo codice</div>
+  <div class="ad-slot">Google AdSense</div>
   {data['content_html']}
   <h2>FAQ</h2>
   {faq}
   <div class="cta-box"><p><strong>Vuoi le prossime guide prima che escano?</strong><br><a href="/newsletter">Iscriviti alla newsletter →</a></p></div>
   <div class="ad-slot">AdSense — footer</div>
 </div>
-<footer>GTA VI Guide · Non affiliato a Rockstar Games · © {datetime.now().year}</footer>
+<footer>GTA VI Guide · Non affiliato a Rockstar Games / Take-Two Interactive · © {datetime.now().year}</footer>
 </div>
 </body>
 </html>"""
 
 
 def main():
-    # Leggi la key dal .env
     env_file = Path(__file__).parent / ".env"
     if env_file.exists():
         for line in env_file.read_text().splitlines():
@@ -185,7 +201,6 @@ def main():
 
     existing = set(f.stem for f in out.glob("*.html"))
     client = OpenAI(api_key=os.environ["OPENAI_API_KEY"])
-
 
     done = 0
 
@@ -230,4 +245,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
