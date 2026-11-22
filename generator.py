@@ -108,6 +108,7 @@ def render_html(data, domain):
 <html lang="it">
 <head>
 <meta charset="UTF-8">
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9593748009949134" crossorigin="anonymous"></script>
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>{data['title']}</title>
 <meta name="description" content="{data['meta_description']}">
