@@ -231,7 +231,21 @@ def main():
 
     print(f"\n🎮 Generating GTA VI articles (EN)...\n")
 
-    for kw in niche["keywords_seed"][:args.count]:
+        # Generate new keywords if seed list is exhausted
+    seed_available = [k for k in niche["keywords_seed"] if k not in done_keywords]
+    if len(seed_available) >= args.count:
+        target_keywords = seed_available[:args.count]
+    else:
+        print("  Generating new keywords via GPT...")
+        new_kws = generate_keywords(client, niche, done_keywords, count=args.count)
+        target_keywords = new_kws + seed_available
+        target_keywords = target_keywords[:args.count]
+        if not target_keywords:
+            print("  No new keywords generated. Exiting.")
+            return
+
+    for kw in target_keywords:
+
         if kw in done_keywords:
             print(f"  ⏭  already done: {kw}")
             continue
