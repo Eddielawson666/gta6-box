@@ -1,14 +1,12 @@
-python -c "
-import pathlib
-content = '''<!DOCTYPE html>
-<html lang=\"en\">
+<!DOCTYPE html>
+<html lang="en">
 <head>
-  <meta charset=\"UTF-8\">
-  <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>GTA 6 Index — Confirmed Facts, Leaks & Guides</title>
-  <meta name=\"description\" content=\"GTA VI news, confirmed features, PC specs, map breakdowns and guides. Updated weekly. No fluff, no fake leaks.\">
-  <link rel=\"canonical\" href=\"https://gta6-index.com/\">
-  <script async src=\"https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9593748009949134\" crossorigin=\"anonymous\"></script>
+  <meta name="description" content="GTA VI news, confirmed features, PC specs, map breakdowns and guides. Updated weekly. No fluff, no fake leaks.">
+  <link rel="canonical" href="https://gta6-index.com/">
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9593748009949134" crossorigin="anonymous"></script>
   <style>
     :root { --bg:#0f0f0f; --card:#1a1a1a; --accent:#ff3c1f; --text:#e0e0e0; --muted:#888; }
     * { box-sizing:border-box; margin:0; padding:0; }
@@ -35,6 +33,36 @@ content = '''<!DOCTYPE html>
     <h1>GTA 6 Index</h1>
     <p>Confirmed facts. Real specs. No recycled junk. Updated every Monday & Thursday.</p>
   </header>
-  <div class=\"container\">
-    <div class=\"grid\" id=\"articles-grid\"></div>
-    <div
+  <div class="container">
+    <div class="grid" id="articles-grid"></div>
+    <div class="newsletter">
+      <h2>Don't miss a single update</h2>
+      <p style="color:var(--muted);margin-top:.4rem">One email per week. Unsubscribe whenever.</p>
+      <a href="/newsletter.html">Join the list</a>
+    </div>
+  </div>
+  <footer>
+    <p>gta6-index.com · Not affiliated with Rockstar Games or Take-Two Interactive.</p>
+  </footer>
+  <script>
+    fetch('/sitemap.xml')
+      .then(r => r.text())
+      .then(xml => {
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(xml, 'text/xml');
+        const locs = doc.getElementsByTagName('loc');
+        const urls = Array.from(locs).map(l => l.textContent).filter(u => u.includes('/articles/'));
+        const grid = document.getElementById('articles-grid');
+        urls.slice(0, 15).forEach(url => {
+          const slug = url.split('/articles/')[1].replace('.html','');
+          const title = slug.replace(/-/g,' ').replace(/\b\w/g, c=>c.toUpperCase());
+          const card = document.createElement('div');
+          card.className = 'card';
+          card.innerHTML = '<h3><a href="/articles/' + slug + '.html">' + title + '</a></h3><p>GTA VI · Updated weekly</p>';
+          grid.appendChild(card);
+        });
+      })
+      .catch(e => console.log('Sitemap fetch error:', e));
+  </script>
+</body>
+</html>
