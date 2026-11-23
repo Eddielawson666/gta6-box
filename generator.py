@@ -202,6 +202,32 @@ footer{{text-align:center;padding:30px 20px;color:#aaa;font-size:.8rem;border-to
 </html>"""
 
 
+def generate_keywords(client, niche, done_keywords, count=15):
+    done_list = "\n".join(sorted(done_keywords)) if done_keywords else "(none yet)"
+    prompt = f"""Generate exactly {count} NEW search keyword ideas for a GTA VI content website.
+
+ALREADY USED (do NOT repeat these):
+{done_list}
+
+RULES:
+- Long-tail questions a player would Google (not generic "GTA VI news")
+- Mix of: guides, comparisons, "what to expect", "how to", specs, tips
+- English only
+- One keyword per line, no numbering
+- Must be DIFFERENT from the used list
+- Focus on what will be searched in the NEXT few months (game is pre-release)
+"""
+    resp = client.chat.completions.create(
+        model="gpt-4o",
+        messages=[{"role": "user", "content": prompt}],
+        temperature=0.9,
+        max_tokens=500,
+    )
+    raw = resp.choices[0].message.content.strip()
+    keywords = [line.strip().lstrip("0123456789.-) ").strip() for line in raw.splitlines() if line.strip()]
+    keywords = [k for k in keywords if k and k not in done_keywords][:count]
+    return keywords
+
 
 def main():
     env_file = Path(__file__).parent / ".env"
