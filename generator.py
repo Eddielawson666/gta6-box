@@ -213,7 +213,7 @@ def main():
     p = argparse.ArgumentParser()
     p.add_argument("--niche", default="gta6")
     p.add_argument("--count", type=int, default=5)
-    p.add_argument("--output", default="./public/articles")
+    p.add_argument("--output", default="./docs/articles")
     p.add_argument("--domain", default="gta6-index.com")
     args = p.parse_args()
 
@@ -221,7 +221,10 @@ def main():
     out = Path(args.output)
     out.mkdir(parents=True, exist_ok=True)
 
+    kw_file = out / ".keywords_done"
+    done_keywords = set(kw_file.read_text().splitlines()) if kw_file.exists() else set()
     existing = set(f.stem for f in out.glob("*.html"))
+
     client = OpenAI(api_key=os.environ["OPENAI_API_KEY"])
 
     done = 0
@@ -229,8 +232,8 @@ def main():
     print(f"\n🎮 Generating GTA VI articles (EN)...\n")
 
     for kw in niche["keywords_seed"][:args.count]:
-        if kw.replace(" ", "-").lower() in existing:
-            print(f"  ⏭  already exists: {kw}")
+        if kw in done_keywords:
+            print(f"  ⏭  already done: {kw}")
             continue
         print(f"  ✍  {kw}")
         for attempt in range(2):
@@ -240,6 +243,8 @@ def main():
                 fp = out / f"{data['slug']}.html"
                 fp.write_text(html, encoding="utf-8")
                 existing.add(data["slug"])
+                with open(kw_file, "a") as kf:
+                    kf.write(kw + "\n")
                 done += 1
                 print(f"     ✓ {fp.name}")
                 break

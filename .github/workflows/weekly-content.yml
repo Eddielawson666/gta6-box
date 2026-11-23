@@ -1,11 +1,10 @@
-name: GTA6 Weekly Content
+name: Weekly Content
+
 on:
   schedule:
-    - cron: "0 7 * * 1,4"
-  workflow_dispatch: {}
-
-permissions:
-  contents: write
+    - cron: "0 7 * * 1"
+    - cron: "0 7 * * 4"
+  workflow_dispatch:
 
 jobs:
   generate:
@@ -19,16 +18,15 @@ jobs:
 
       - run: pip install openai
 
-      - name: Generate
+      - name: Generate articles
+        run: python generator.py --niche gta6 --count 15 --output ./docs/articles --domain gta6-index.com
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-        run: |
-          python generator.py --niche gta6 --count 15 --output ./public/articles --domain gta6-index.com
 
-      - name: Commit and push
+      - name: Commit & push
         run: |
-          git config user.name "gta6-bot"
-          git config user.email "bot@gta6-index.com"
+          git config user.name "github-actions"
+          git config user.email "actions@github.com"
           git add -A
-          git diff --cached --quiet || git commit -m "auto: nuovi articoli"
+          git diff --cached --quiet || git commit -m "auto: weekly content update"
           git push
