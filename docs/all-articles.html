@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>All Articles — GTA 6 Index</title>
+  <meta name="description" content="Browse the full index of GTA VI guides, comparisons and guides.">
+  <meta name="robots" content="noindex">
+  <link rel="canonical" href="https://gta6-index.com/">
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9593748009949134" crossorigin="anonymous"></script>
+  <style>
+    :root { --bg:#0f0f0f; --card:#1a1a1a; --accent:#ff3c1f; --text:#e0e0e0; --muted:#888; }
+    * { box-sizing:border-box; margin:0; padding:0; }
+    body { font-family:system-ui,-apple-system,sans-serif; background:var(--bg); color:var(--text); line-height:1.6; }
+    a { color:var(--accent); text-decoration:none; }
+    a:hover { text-decoration:underline; }
+    .container { max-width:960px; margin:0 auto; padding:2rem 1rem; }
+    header { padding:2rem 0 1rem; }
+    header h1 { font-size:1.8rem; margin-bottom:.4rem; }
+    header p { color:var(--muted); }
+    .grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(280px,1fr)); gap:1rem; margin-top:2rem; }
+    .card { background:var(--card); border-radius:10px; padding:1.2rem; transition:transform .15s; }
+    .card:hover { transform:translateY(-3px); }
+    .card h3 { font-size:1rem; margin-bottom:.3rem; }
+    .card h3 a { color:var(--text); }
+    .card p { font-size:.82rem; color:var(--muted); }
+    footer { text-align:center; padding:2rem 1rem; color:var(--muted); font-size:.8rem; margin-top:3rem; }
+    .back { display:inline-block; margin-bottom:1rem; color:var(--muted); font-size:.9rem; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <a href="/" class="back">← Back to home</a>
+      <h1>All Articles</h1>
+      <p>Every GTA VI guide we've published so far.</p>
+    </header>
+    <div class="grid" id="grid"></div>
+  </div>
+  <footer><p>gta6-index.com · Not affiliated with Rockstar Games or Take-Two Interactive.</p></footer>
+  <script>
+    fetch('/sitemap.xml')
+      .then(r => r.text())
+      .then(xml => {
+        const doc = new DOMParser().parseFromString(xml, 'text/xml');
+        const locs = doc.getElementsByTagName('loc');
+        const urls = Array.from(locs).map(l => l.textContent).filter(u => u.includes('/articles/'));
+        const grid = document.getElementById('grid');
+        urls.forEach(url => {
+          const slug = url.split('/articles/')[1].replace('.html','');
+          const title = slug.replace(/-/g,' ').replace(/\b\w/g, c=>c.toUpperCase());
+          const card = document.createElement('div');
+          card.className = 'card';
+          card.innerHTML = '<h3><a href="/articles/' + slug + '.html">' + title + '</a></h3><p>GTA VI</p>';
+          grid.appendChild(card);
+        });
+      })
+      .catch(e => console.log(e));
+  </script>
+</body>
+</html>
