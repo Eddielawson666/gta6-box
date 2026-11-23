@@ -1,56 +1,40 @@
-<!DOCTYPE html>
-<html lang="it">
+python -c "
+import pathlib
+content = '''<!DOCTYPE html>
+<html lang=\"en\">
 <head>
-<meta charset="UTF-8">
-<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9593748009949134" crossorigin="anonymous"></script>
-<meta name="google-site-verification" content="yponUlTnLogO5wEPw-oDbaeSRlQu899Oy9pEDPMgL4I" />
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>GTA VI Guide — Walkthrough, mappe, cheat, tutto</title>
-<meta name="description" content="Guide complete per GTA VI: farmare soldi, armi nascoste, mappe, cheat, multiplayer. Aggiornato ogni settimana.">
-<style>
-*{margin:0;padding:0;box-sizing:border-box}
-body{font-family:system-ui,sans-serif;background:#0b0d17;color:#e8e9f3;min-height:100vh}
-.hero{text-align:center;padding:60px 20px 40px}
-.hero .badge{display:inline-block;background:#e74c3c22;color:#e74c3c;padding:4px 14px;border-radius:99px;font-size:.8rem;font-weight:700;letter-spacing:.5px;margin-bottom:16px}
-.hero h1{font-size:2.8rem;font-weight:800;margin-bottom:10px}
-.hero h1 span{color:#e74c3c}
-.hero p{color:#8b8fa8;font-size:1.05rem;max-width:500px;margin:0 auto}
-.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px;max-width:960px;margin:0 auto;padding:0 20px 60px}
-.card{padding:22px;background:#13162a;border:1px solid #1e2244;border-radius:12px;transition:transform .15s}
-.card:hover{transform:translateY(-2px);border-color:#e74c3c55}
-.card .tag{font-size:.72rem;font-weight:700;color:#e74c3c;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px}
-.card h3{font-size:1rem;margin-bottom:6px;color:#fff}
-.card p{font-size:.87rem;color:#8b8fa8;line-height:1.5}
-.card a{color:#e74c3c;font-size:.85rem;font-weight:600;text-decoration:none;display:inline-block;margin-top:10px}
-footer{text-align:center;padding:24px;color:#555;font-size:.78rem}
-@media(max-width:500px){.hero h1{font-size:1.8rem}}
-</style>
+  <meta charset=\"UTF-8\">
+  <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">
+  <title>GTA 6 Index — Confirmed Facts, Leaks & Guides</title>
+  <meta name=\"description\" content=\"GTA VI news, confirmed features, PC specs, map breakdowns and guides. Updated weekly. No fluff, no fake leaks.\">
+  <link rel=\"canonical\" href=\"https://gta6-index.com/\">
+  <script async src=\"https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9593748009949134\" crossorigin=\"anonymous\"></script>
+  <style>
+    :root { --bg:#0f0f0f; --card:#1a1a1a; --accent:#ff3c1f; --text:#e0e0e0; --muted:#888; }
+    * { box-sizing:border-box; margin:0; padding:0; }
+    body { font-family:system-ui,-apple-system,sans-serif; background:var(--bg); color:var(--text); line-height:1.6; }
+    a { color:var(--accent); text-decoration:none; }
+    a:hover { text-decoration:underline; }
+    .container { max-width:960px; margin:0 auto; padding:2rem 1rem; }
+    header { text-align:center; padding:3rem 1rem 2rem; }
+    header h1 { font-size:2.4rem; margin-bottom:.5rem; }
+    header p { color:var(--muted); max-width:520px; margin:0 auto; }
+    .grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(280px,1fr)); gap:1rem; margin-top:2rem; }
+    .card { background:var(--card); border-radius:10px; padding:1.2rem; transition:transform .15s; }
+    .card:hover { transform:translateY(-3px); }
+    .card h3 { font-size:1.05rem; margin-bottom:.4rem; }
+    .card h3 a { color:var(--text); }
+    .card p { font-size:.85rem; color:var(--muted); }
+    .newsletter { margin-top:3rem; text-align:center; background:var(--card); border-radius:10px; padding:2rem 1.5rem; }
+    .newsletter a { display:inline-block; margin-top:.8rem; background:var(--accent); color:#fff; padding:.6rem 1.4rem; border-radius:6px; font-weight:600; }
+    footer { text-align:center; padding:2rem 1rem; color:var(--muted); font-size:.8rem; }
+  </style>
 </head>
 <body>
-<div class="hero">
-  <div class="badge">AGGIORNATO OGNI SETTIMANA</div>
-  <h1>GTA<span>6</span> Guide</h1>
-  <p>Walkthrough, mappe, cheat, farmare soldi, multiplayer. Senza fuffa.</p>
-</div>
-<div class="grid">
-  <div class="card"><div class="tag">GUIDA RAPIDA</div><h3>Farmare soldi nei primi 30 min</h3><p>I 5 metodi più veloci per accumulare capitale.</p><a href="/articles/gta-vi-come-farmare-soldi-nei-primi-30-minuti.html">Leggi →</a></div>
-  <div class="card"><div class="tag">MAPPA</div><h3>Tutti i luoghi segreti</h3><p>Grotte, nascondigli, shortcut di Leonida.</p><a href="/articles/gta-vi-mappe-luoghi-segreti-grotte-nascoste.html">Leggi →</a></div>
-  <div class="card"><div class="tag">ARMI</div><h3>Armi nascoste</h3><p>Ogni arma segreta e la sua posizione.</p><a href="/articles/gta-vi-tutte-le-armi-nascoste-e-dove-trovarle.html">Leggi →</a></div>
-  <div class="card"><div class="tag">CHEAT</div><h3>Codici PS5 / Xbox / PC</h3><p>La lista completa dei cheat funzionanti.</p><a href="/articles/gta-vi-tutti-i-cheat-e-codici-ps5-xbox-pc.html">Leggi →</a></div>
-  <div class="card"><div class="tag">STORIA</div><h3>Lucas & Claire</h3><p>Chi sono, cosa vogliono, la trama completa.</p><a href="/articles/gta-vi-lucas-e-claire-storia-e-personalita-completi.html">Leggi →</a></div>
-  <div class="card"><div class="tag">TECNICO</div><h3>Requisiti PC</h3><p>GPU, RAM, storage: i numeri reali.</p><a href="/articles/gta-vi-requisiti-pc-si-gira-sul-tuo-pc.html">Leggi →</a></div>
-  <div class="card"><div class="tag">CONFRONTO</div><h3>GTA VI vs GTA V</h3><p>Qual è davvero il capolavoro?</p><a href="/articles/gta-vi-differenze-con-gta-v-cosa-e-cambiato-davvero.html">Leggi →</a></div>
-  <div class="card"><div class="tag">MULTIPLAYER</div><h3>Online: cosa sappiamo</h3><p>Tutto su GTA VI Online e il multiplayer.</p><a href="/articles/gta-vi-multiplayer-tutto-quello-che-sappiamo.html">Leggi →</a></div>
-  <div class="card"><div class="tag">MISSIONI</div><h3>Storia: guida senza spoiler</h3><p>L'ordine delle missioni principali.</p><a href="/articles/gta-vi-missioni-principali-ordine-guida-senza-spoiler.html">Leggi →</a></div>
-  <div class="card"><div class="tag">SIDE QUEST</div><h3>Le più difficili</h3><p>Come farle senza impazzire.</p><a href="/articles/gta-vi-side-quest-piu-difficili-e-come-farle.html">Leggi →</a></div>
-  <div class="card"><div class="tag">VESTITI</div><h3>Auto e moto nascosti</h3><p>Lista completa di tutti i veicoli segreti.</p><a href="/articles/gta-vi-vestiti-auto-e-moto-nascosti-lista-completa.html">Leggi →</a></div>
-  <div class="card"><div class="tag">LEONIDA</div><h3>Il nuovo stato</h3><p>Come funziona l'ambientazione di Leonida.</p><a href="/articles/gta-vi-leonida-come-funziona-il-nuovo-stato.html">Leggi →</a></div>
-  <div class="card"><div class="tag">GUIDA</div><h3>Quanto tempo per finirlo</h3><p>E cosa fare dopo aver completato la storia.</p><a href="/articles/gta-vi-quanto-tempo-per-finirlo-e-cosa-fare-dopo.html">Leggi →</a></div>
-  <div class="card"><div class="tag">ONLINE</div><h3>GTA Online: quando esce</h3><p>Cosa aspettarsi dal multiplayer.</p><a href="/articles/gta-vi-online-quando-esce-e-cosa-aspettarsi.html">Leggi →</a></div>
-  <div class="card"><div class="tag">CONFRONTO</div><h3>GTA VI vs GTA V</h3><p>Il vero confronto, senza fanatismi.</p><a href="/articles/gta-vi-vs-gta-v-qual-e-davvero-il-capolavoro.html">Leggi →</a></div>
-</div>
-
-</div>
-<footer>GTA VI Guide · Non affiliato a Rockstar Games / Take-Two · © 2025</footer>
-</body>
-</html>
+  <header>
+    <h1>GTA 6 Index</h1>
+    <p>Confirmed facts. Real specs. No recycled junk. Updated every Monday & Thursday.</p>
+  </header>
+  <div class=\"container\">
+    <div class=\"grid\" id=\"articles-grid\"></div>
+    <div

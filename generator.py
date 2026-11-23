@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""GTA VI Content Engine"""
+"""GTA VI Content Engine (EN)"""
 
 import argparse, json, time, os
 from datetime import datetime
@@ -8,77 +8,79 @@ from openai import OpenAI
 
 NICHE = {
     "gta6": {
-        "persona": "un gamer italiano con 12 anni di esperienza su GTA, ha completato GTA V in 200 ore, ha giocato la demo di GTA VI, scrive come se parlasse a un amico al bar. Non è un giornalista, è uno che ha giocato e ti racconta.",
+        "persona": "A gamer with 12 years of GTA experience. Beat GTA V in 200 hours, played the GTA VI demo, and writes like they're talking to a mate at the pub. Not a journalist. A player who's been through it and is just telling you how it went.",
         "keywords_seed": [
-            "GTA VI come farmare soldi nei primi 30 minuti",
-            "GTA VI tutte le armi nascoste e dove trovarle",
-            "GTA VI mappe: luoghi segreti e grotte nascoste",
-            "GTA VI differenze con GTA V: cosa è cambiato davvero",
-            "GTA VI requisiti PC: si gira sul tuo PC?",
-            "GTA VI multiplayer: tutto quello che sappiamo",
-            "GTA VI Lucas e Claire: storia e personalità completi",
-            "GTA VI tutti i cheat e codici PS5 Xbox PC",
-            "GTA VI vestiti auto e moto nascosti: lista completa",
-            "GTA VI quanto tempo per finirlo e cosa fare dopo",
-            "GTA VI Leonida: come funziona il nuovo stato",
-            "GTA VI missioni principali: ordine e guida senza spoiler",
-            "GTA VI side quest più difficili e come farle",
-            "GTA VI online: quando esce e cosa aspettarsi",
-            "GTA VI vs GTA V: qual è davvero il capolavoro",
+            "GTA VI PC requirements: can it run on your PC",
+            "GTA VI all hidden weapons and where to find them",
+            "GTA VI map: secret locations and hidden caves",
+            "GTA VI vs GTA V: what actually changed",
+            "GTA VI how to farm money in the first 30 minutes",
+            "GTA VI multiplayer: everything we know so far",
+            "GTA VI Lucas and Claire: full story and character breakdown",
+            "GTA VI all cheat codes PS5 Xbox PC",
+            "GTA VI hidden outfits cars and bikes: complete list",
+            "GTA VI how long to beat and what to do after",
+            "GTA VI Leonida: how the new state works",
+            "GTA VI main missions: order and spoiler-free guide",
+            "GTA VI hardest side quests and how to beat them",
+            "GTA VI Online: release date and what to expect",
+            "GTA VI vs GTA V: which is the real masterpiece",
         ],
         "affiliate_keywords": [
-            "PS5 controller", "Xbox Series X",
-            "headset gaming wireless", "monitor 144hz 27 pollici"
+            "PS5 DualSense controller", "Xbox Series X",
+            "wireless gaming headset", "144Hz 27 inch monitor"
         ],
         "affiliate_tag": "gta6index-21"
     }
 }
 
-ARTICLE_PROMPT = """Sei {persona}.
+ARTICLE_PROMPT = """You are {persona}.
 
-Scrivi una pagina in italiano che risponde a una domanda specifica di un giocatore su GTA VI. NON è un articolo SEO generico. È una risposta onesta, diretta, con personalità.
+Write an English page that answers a specific question a player has about GTA VI. It's NOT a generic SEO article. It's an honest, direct answer with personality.
 
-REGOLE DI CONTENUTO (FONDAMENTALI):
-- Parla SOLO di cose CONFERMATE: trailer ufficiali, annuncio Rockstar, gameplay mostrato pubblicamente, dichiarazioni dei developer in interviste.
-- Se qualcosa NON è confermato (requisiti PC, dettagli di missioni, prezzi, feature non mostrate), dillo chiaramente: "Non è ancora stato confermato da Rockstar" oppure "Al momento non lo sappiamo, ma in base a GTA V ci si può aspettare..."
-- NON inventare: nessun numero preciso di soldi da farmare, nessuna posizione esatta di armi se non è stata mostrata in trailer, nessun requisito hardware se non è stato annunciato.
-- Puoi dare opinioni personali: "Secondo me, questa volta Rockstar ha fatto meglio di V, e ti dico perché."
-- Puoi ammettere incertezza: "Onestamente non l'ho ancora visto in azione, ma..."
-- Se la domanda è "requisiti PC" e il gioco non è uscito per PC, il titolo diventa "Si girerà su PC? Cosa sappiamo davvero" e il contenuto è onesto.
+CONTENT RULES (NON-NEGOTIABLE):
+- ONLY talk about CONFIRMED facts: official trailers, Rockstar announcements, publicly shown gameplay, developer quotes in interviews.
+- If something is NOT confirmed (PC specs, mission details, prices, unshown features), say it clearly: "Rockstar hasn't confirmed this yet" or "As of now we don't know, but based on GTA V you'd expect..."
+- DO NOT invent: no specific money amounts, no exact weapon locations unless shown in a trailer, no hardware specs unless officially announced.
+- You CAN have opinions: "Honestly, Rockstar nailed it this time, and here's why."
+- You CAN show uncertainty: "I haven't seen it in action yet, but..."
+- If the question is "PC requirements" and the game isn't out on PC yet, the title becomes "Will It Run on PC? What We Actually Know" and the content is honest.
 
-REGOLE DI STILE:
-- Scrivi come parli. Frasi corte. A volte una riga sola. A volte due parole: "È pazzesco."
-- NIENTE: "in questo articolo", "in conclusione", "in primo luogo", "è importante notare che", "va sottolineato che", "scopri di più"
-- NIENTE frasi da brochure: "massimizza la tua esperienza", "un'avventura senza pari"
-- Puoi usare il "tu". Puoi fare domande: "Ma ti sei chiesto perché..."
-- Puoi avere un'opinione forte. Puoi essere scettico.
-- Varia la struttura: non sempre 5 sezioni. A volte 3. A volte una lunga e due corte.
-- Se l'argomento è corto, il testo è corto. 800 parole bastano. Non allungare con fuffa.
-- Lunghezza: 800-2000 parole. Meno è meglio.
-- NIENTE emoji nel testo.
-- Paragrafi: massimo 4 righe. A volte una.
+STYLE RULES:
+- Write how you'd text a friend. Short sentences. Sometimes one line. Sometimes two words: "It's insane."
+- NO: "in this article", "in conclusion", "firstly", "it's important to note that", "it's worth mentioning that", "discover more"
+- NO brochure language: "maximize your experience", "an unparalleled adventure"
+- Use "you". Ask questions: "Ever wondered why..."
+- Be opinionated. Be skeptical. Push back if a claim feels off.
+- Vary structure: not always 5 sections. Sometimes 3. Sometimes one long and two short.
+- If the topic is thin, the text is thin. 800 words is fine. Don't pad.
+- Length: 800–2000 words. Less is better.
+- NO emojis in the text.
+- Paragraphs: max 4 lines. Sometimes one.
 
-LINK:
-- Inserisci 1 link affiliazione Amazon (tag: {affiliate_tag}) in modo NATURALE.
-  Esempio: "io per le sessioni lunghe uso il DualSense, se vi serve [lo trovate qui](https://www.amazon.it/s?k=PS5+controller&tag={affiliate_tag})"
-- Inserisci 1-2 link interni ad altri articoli del blog.
-- Inserisci UNA tabella SOLO se ha senso (confronto, lista di cose). Non forzarla.
+LINKS:
+- Insert 1 Amazon affiliate link (tag: {affiliate_tag}) placed NATURALLY mid-article.
+  Example: "for long sessions I stick with the DualSense, grab one [here](https://www.amazon.com/s?k=PS5+controller&tag={affiliate_tag})"
+  Use amazon.com (US store), NOT amazon.it.
+- Insert 1-2 internal links to other blog posts (format: /articles/slug.html).
+- Use a table ONLY if it actually helps (comparison, spec list). Don't force it.
 
-STRUTTURA:
-- H1: la domanda o un titolo naturale
-- 2-3 righe di intro: la risposta in breve, diretta
-- Corpo: 3-7 sezioni, ognuna risponde a un aspetto
-- Chiusura: 1-2 righe. Eventuale link. NIENTE "spero che sia stato utile"
+STRUCTURE:
+- H1: the question or a natural title
+- 2-3 sentence intro: the short answer, upfront
+- Body: 3-7 sections, each hitting one aspect
+- Closing: 1-2 lines. Optional link. NO "hope you found this helpful"
+- End with: "Want more GTA VI intel before it drops? Grab the newsletter — no spam, just the good stuff."
 
-OUTPUT — SOLO JSON valido:
+OUTPUT — STRICT JSON only, no markdown fences:
 {{
-  "slug": "kebab-case",
-  "title": "Titolo naturale, non clickbait",
-  "meta_description": "max 155 char, diretto",
-  "meta_keywords": ["3-5"],
-  "content_html": "HTML: h2, p, ul, table, a. SENZA html/body. Senza emoji.",
+  "slug": "kebab-case-slug",
+  "title": "Natural title, under 60 chars, not clickbait",
+  "meta_description": "150-155 chars, keyword-rich, direct",
+  "meta_keywords": ["3-5 keywords"],
+  "content_html": "HTML body: h2, p, ul, table, a. NO html/body/head tags. No emojis.",
   "faq": [{{"q":"...","a":"..."}}],
-  "affiliate_links": ["https://..."],
+  "affiliate_links": ["https://www.amazon.com/...?tag={affiliate_tag}"],
   "internal_links": ["/articles/..."],
   "reading_time_min": 5,
   "target_keyword": "..."
@@ -92,10 +94,10 @@ def generate_article(client, niche, keyword, existing_slugs):
         affiliate_tag=niche["affiliate_tag"]
     )
     user_msg = (
-        f"Keyword target: {keyword}\n\n"
-        f"Altri articoli (per link interni):\n"
-        + "\n".join(f"  - /articles/{s}" for s in list(existing_slugs)[:5])
-        + "\n\nScrivi la pagina. Ricorda: solo cose confermate. Se non sai, dillo."
+        f"Target keyword: {keyword}\n\n"
+        f"Other articles on this site (pick 1-2 for internal links):\n"
+        + "\n".join(f"  - /articles/{s}.html" for s in list(existing_slugs)[:5])
+        + "\n\nWrite the page. Remember: confirmed facts only. If you don't know, say so."
     )
     resp = client.chat.completions.create(
         model="gpt-4o",
@@ -109,20 +111,33 @@ def generate_article(client, niche, keyword, existing_slugs):
     raw = resp.choices[0].message.content.strip()
     if raw.startswith("```"):
         raw = raw.split("\n", 1)[1].rsplit("```", 1)[0]
-    return json.loads(raw)
+    data = json.loads(raw)
+    # Force Amazon US store (GPT sometimes defaults to .it)
+    data["content_html"] = data["content_html"].replace("amazon.it", "amazon.com")
+    if "affiliate_links" in data:
+        data["affiliate_links"] = [link.replace("amazon.it", "amazon.com") for link in data["affiliate_links"]]
+    return data
 
 
 def render_html(data, domain):
-    faq = ""
+    faq_html = ""
     for item in data.get("faq", []):
-        faq += f"""
+        faq_html += f"""
     <details style="margin:10px 0;padding:14px 16px;background:#f7f7fb;border-radius:8px">
       <summary style="cursor:pointer;font-weight:600">{item['q']}</summary>
       <p style="margin-top:10px;color:#444;line-height:1.7">{item['a']}</p>
     </details>"""
 
+    # Build FAQ JSON-LD OUTSIDE the f-string (avoids brace conflict)
+    faq_entities = [
+        {"@type": "Question", "name": item["q"],
+         "acceptedAnswer": {"@type": "Answer", "text": item["a"]}}
+        for item in data.get("faq", [])
+    ]
+    faq_jsonld = '{"@context":"https://schema.org","@type":"FAQPage","mainEntity":' + json.dumps(faq_entities) + '}'
+
     return f"""<!DOCTYPE html>
-<html lang="it">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9593748009949134" crossorigin="anonymous"></script>
@@ -130,18 +145,24 @@ def render_html(data, domain):
 <title>{data['title']}</title>
 <meta name="description" content="{data['meta_description']}">
 <meta name="keywords" content="{' ,'.join(data['meta_keywords'])}">
-<link rel="canonical" href="https://{domain}/articles/{data['slug']}">
+<link rel="canonical" href="https://{domain}/articles/{data['slug']}.html">
 <meta property="og:title" content="{data['title']}">
 <meta property="og:description" content="{data['meta_description']}">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://{domain}/articles/{data['slug']}.html">
 <script type="application/ld+json">
-{{"@context":"https://schema.org","@type":"Article","headline":"{data['title']}","datePublished":"{datetime.now().isoformat()}","author":{{"@type":"Person","name":"Redazione GTA6 Guide"}},"mainEntityOfPage":"https://{domain}/articles/{data['slug']}"}}
+{{"@context":"https://schema.org","@type":"Article","headline":"{data['title']}","description":"{data['meta_description']}","datePublished":"{datetime.now().isoformat()}","author":{{"@type":"Person","name":"GTA6 Index Team"}},"mainEntityOfPage":"https://{domain}/articles/{data['slug']}.html"}}
+</script>
+<script type="application/ld+json">
+{faq_jsonld}
 </script>
 <style>
 *{{margin:0;padding:0;box-sizing:border-box}}
-body{{font-family:system-ui,sans-serif;line-height:1.85;color:#1a1a2e;background:#fff}}
+body{{font-family:system-ui,-apple-system,sans-serif;line-height:1.85;color:#1a1a2e;background:#fff}}
 .wrap{{max-width:740px;margin:0 auto;padding:28px 20px 80px}}
 h1{{font-size:2.1rem;line-height:1.2;margin-bottom:14px}}
 h2{{font-size:1.35rem;margin:36px 0 12px;padding-bottom:8px;border-bottom:1px solid #eee}}
+h3{{font-size:1.1rem;margin:24px 0 10px}}
 p{{margin:0 0 16px;font-size:1.02rem}}
 ul,ol{{margin:0 0 16px 22px}}
 li{{margin:5px 0}}
@@ -162,23 +183,24 @@ footer{{text-align:center;padding:30px 20px;color:#aaa;font-size:.8rem;border-to
 <body>
 <div class="wrap">
   <div style="display:flex;justify-content:space-between;align-items:center;padding-bottom:16px;border-bottom:2px solid #1a1a2e;margin-bottom:24px">
-    <strong style="font-size:1.2rem">GTA<span style="color:#e74c3c">6</span> Guide</strong>
+    <strong style="font-size:1.2rem">GTA<span style="color:#e74c3c">6</span> Index</strong>
     <a href="/" style="font-size:.88rem">← Home</a>
   </div>
-  <span class="badge">GUIDA GTA VI</span>
-  <p class="meta">{datetime.now().strftime('%d %B %Y')} · {data['reading_time_min']} min di lettura</p>
+  <span class="badge">GTA VI GUIDE</span>
+  <p class="meta">{datetime.now().strftime('%d %B %Y')} · {data['reading_time_min']} min read</p>
   <h1>{data['title']}</h1>
   <div class="ad-slot">Google AdSense</div>
   {data['content_html']}
   <h2>FAQ</h2>
-  {faq}
-  <div class="cta-box"><p><strong>Vuoi le prossime guide prima che escano?</strong><br><a href="/newsletter">Iscriviti alla newsletter →</a></p></div>
+  {faq_html}
+  <div class="cta-box"><p><strong>Want more GTA VI intel before it drops?</strong><br><a href="/newsletter.html">Join the newsletter — no spam, just the good stuff →</a></p></div>
   <div class="ad-slot">AdSense — footer</div>
 </div>
-<footer>GTA VI Guide · Non affiliato a Rockstar Games / Take-Two Interactive · © {datetime.now().year}</footer>
+<footer>GTA6 Index · Not affiliated with Rockstar Games or Take-Two Interactive · © {datetime.now().year}</footer>
 </div>
 </body>
 </html>"""
+
 
 
 def main():
@@ -204,11 +226,11 @@ def main():
 
     done = 0
 
-    print(f"\n🎮 Generando articoli GTA VI…\n")
+    print(f"\n🎮 Generating GTA VI articles (EN)...\n")
 
     for kw in niche["keywords_seed"][:args.count]:
         if kw.replace(" ", "-").lower() in existing:
-            print(f"  ⏭  già presente: {kw}")
+            print(f"  ⏭  already exists: {kw}")
             continue
         print(f"  ✍  {kw}")
         for attempt in range(2):
@@ -223,24 +245,25 @@ def main():
                 break
             except json.JSONDecodeError:
                 if attempt == 0:
-                    print("     retry…")
+                    print("     retry...")
                     time.sleep(2)
                 else:
-                    print("     JSON fallito")
+                    print("     JSON parse failed")
             except Exception as e:
-                print(f"     ERRORE: {e}")
+                print(f"     ERROR: {e}")
                 break
         time.sleep(1)
 
     slugs = sorted(f.stem for f in out.glob("*.html"))
     sm = '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
     sm += f'  <url><loc>https://{args.domain}/</loc><lastmod>{datetime.now():%Y-%m-%d}</lastmod></url>\n'
+    sm += f'  <url><loc>https://{args.domain}/newsletter.html</loc><lastmod>{datetime.now():%Y-%m-%d}</lastmod></url>\n'
     for s in slugs:
         sm += f'  <url><loc>https://{args.domain}/articles/{s}.html</loc><lastmod>{datetime.now():%Y-%m-%d}</lastmod></url>\n'
     sm += '</urlset>'
     (out.parent / "sitemap.xml").write_text(sm)
 
-    print(f"\nFATTO: {done} nuovi, {len(slugs)} totali, sitemap OK\n")
+    print(f"\nDONE: {done} new, {len(slugs)} total, sitemap updated\n")
 
 
 if __name__ == "__main__":
