@@ -238,7 +238,7 @@ RULES:
         tools=[{"type": "web_search"}],
     )
     raw = resp.output_text.strip()
-    keywords = [line.strip().lstrip("0123456789.-) ").strip() for line in raw.splitlines() if line.strip()]
+    keywords = [line.strip().lstrip("0123456789.-) ").strip() for line in raw.splitlines() if line.strip() and len(line.strip()) < 100]
     keywords = [k for k in keywords if k and k not in done_keywords][:count]
     return keywords
 
