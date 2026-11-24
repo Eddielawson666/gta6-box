@@ -62,7 +62,7 @@ STYLE RULES:
 - Paragraphs: max 4 lines. Sometimes one.
 
 LINKS:
-- Insert 1 Amazon affiliate link (tag: {affiliate_tag}) placed NATURALLY mid-article.
+- Insert 1 Amazon affiliate link (tag: {affiliate_tag}) in EVERY article, no exceptions. Place it mid-article. If the topic doesn't naturally suggest a product, use a general one: e.g. "for those long sessions, a solid headset or controller makes a difference — grab one [here](https://www.amazon.com/s?k=gaming+headset&tag={affiliate_tag})".
   Example: "for long sessions I stick with the DualSense, grab one [here](https://www.amazon.com/s?k=PS5+controller&tag={affiliate_tag})"
   Use amazon.com (US store), NOT amazon.it.
 - Insert 1-2 internal links to other blog posts (format: /articles/slug.html).
