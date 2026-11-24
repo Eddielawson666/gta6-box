@@ -39,6 +39,7 @@ ARTICLE_PROMPT = """You are {persona}.
 Write an English page that answers a specific question a player has about GTA VI. It's NOT a generic SEO article. It's an honest, direct answer with personality.
 
 CONTENT RULES (NON-NEGOTIABLE):
+- BEFORE writing, SEARCH THE WEB for the latest confirmed information on this topic. Use at least 2-3 searches to gather current facts, official announcements, and verified details. Base your article on what you find.
 - ONLY talk about CONFIRMED facts: official trailers, Rockstar announcements, publicly shown gameplay, developer quotes in interviews.
 - If something is NOT confirmed (PC specs, mission details, prices, unshown features), say it clearly: "Rockstar hasn't confirmed this yet" or "As of now we don't know, but based on GTA V you'd expect..."
 - DO NOT invent: no specific money amounts, no exact weapon locations unless shown in a trailer, no hardware specs unless officially announced.
@@ -107,6 +108,7 @@ def generate_article(client, niche, keyword, existing_slugs):
         ],
         temperature=0.8,
         max_tokens=4500,
+        tools=[{"type": "web_search"}],
     )
     raw = resp.choices[0].message.content.strip()
     if raw.startswith("```"):
@@ -222,6 +224,7 @@ RULES:
         messages=[{"role": "user", "content": prompt}],
         temperature=0.9,
         max_tokens=500,
+        tools=[{"type": "web_search"}],
     )
     raw = resp.choices[0].message.content.strip()
     keywords = [line.strip().lstrip("0123456789.-) ").strip() for line in raw.splitlines() if line.strip()]
