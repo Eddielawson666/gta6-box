@@ -108,7 +108,6 @@ def generate_article(client, niche, keyword, existing_slugs):
         ],
         temperature=0.8,
         max_tokens=4500,
-        tools=[{"type": "web_search"}],
     )
     raw = resp.choices[0].message.content.strip()
     if raw.startswith("```"):
@@ -224,7 +223,6 @@ RULES:
         messages=[{"role": "user", "content": prompt}],
         temperature=0.9,
         max_tokens=500,
-        tools=[{"type": "web_search"}],
     )
     raw = resp.choices[0].message.content.strip()
     keywords = [line.strip().lstrip("0123456789.-) ").strip() for line in raw.splitlines() if line.strip()]
