@@ -57,6 +57,7 @@ STYLE RULES:
 - If the topic is thin, the text is thin. 800 words is fine. Don't pad.
 - Length: 800–2000 words. Less is better.
 - NO emojis in the text.
+- Do NOT include an H1 tag in content_html. The template already adds the title. Start your HTML with H2 sections directly.
 - NEVER include source citations, URLs, or references to websites in the article body. Use the information you find in searches, but write it naturally without citing where it came from. No "[source]", no "(according to X)", no markdown links to news sites.
 - Paragraphs: max 4 lines. Sometimes one.
 
