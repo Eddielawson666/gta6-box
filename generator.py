@@ -57,6 +57,7 @@ STYLE RULES:
 - If the topic is thin, the text is thin. 800 words is fine. Don't pad.
 - Length: 800–2000 words. Less is better.
 - NO emojis in the text.
+- NEVER include source citations, URLs, or references to websites in the article body. Use the information you find in searches, but write it naturally without citing where it came from. No "[source]", no "(according to X)", no markdown links to news sites.
 - Paragraphs: max 4 lines. Sometimes one.
 
 LINKS:
@@ -98,22 +99,20 @@ def generate_article(client, niche, keyword, existing_slugs):
         f"Target keyword: {keyword}\n\n"
         f"Other articles on this site (pick 1-2 for internal links):\n"
         + "\n".join(f"  - /articles/{s}.html" for s in list(existing_slugs)[:5])
-        + "\n\nWrite the page. Remember: confirmed facts only. If you don't know, say so."
+        + "\n\nWrite the page. Before writing, search the web for the latest confirmed facts about this topic. Use at least 2 searches. Base your article ONLY on verified, confirmed information. If something is unconfirmed, say so explicitly."
     )
-    resp = client.chat.completions.create(
+    resp = client.responses.create(
         model="gpt-4o",
-        messages=[
+        input=[
             {"role": "system", "content": prompt},
             {"role": "user", "content": user_msg},
         ],
-        temperature=0.8,
-        max_tokens=4500,
+        tools=[{"type": "web_search"}],
     )
-    raw = resp.choices[0].message.content.strip()
+    raw = resp.output_text.strip()
     if raw.startswith("```"):
         raw = raw.split("\n", 1)[1].rsplit("```", 1)[0]
     data = json.loads(raw)
-    # Force Amazon US store (GPT sometimes defaults to .it)
     data["content_html"] = data["content_html"].replace("amazon.it", "amazon.com")
     if "affiliate_links" in data:
         data["affiliate_links"] = [link.replace("amazon.it", "amazon.com") for link in data["affiliate_links"]]
@@ -218,13 +217,26 @@ RULES:
 - Must be DIFFERENT from the used list
 - Focus on what will be searched in the NEXT few months (game is pre-release)
 """
-    resp = client.chat.completions.create(
+def generate_keywords(client, niche, done_keywords, count=15):
+    done_list = "\n".join(sorted(done_keywords)) if done_keywords else "(none yet)"
+    prompt = f"""Generate exactly {count} NEW search keyword ideas for a GTA VI content website. Search the web first to find trending GTA VI topics, recent announcements, and popular player questions that aren't covered by the used list.
+
+ALREADY USED (do NOT repeat these):
+{done_list}
+
+RULES:
+- Long-tail questions a player would Google
+- Mix of: guides, comparisons, "what to expect", "how to", specs, tips
+- English only, one keyword per line, no numbering
+- Must be DIFFERENT from the used list
+- Focus on what players are CURRENTLY searching for
+"""
+    resp = client.responses.create(
         model="gpt-4o",
-        messages=[{"role": "user", "content": prompt}],
-        temperature=0.9,
-        max_tokens=500,
+        input=prompt,
+        tools=[{"type": "web_search"}],
     )
-    raw = resp.choices[0].message.content.strip()
+    raw = resp.output_text.strip()
     keywords = [line.strip().lstrip("0123456789.-) ").strip() for line in raw.splitlines() if line.strip()]
     keywords = [k for k in keywords if k and k not in done_keywords][:count]
     return keywords
