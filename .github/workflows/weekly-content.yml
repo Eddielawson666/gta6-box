@@ -2,7 +2,7 @@ name: Weekly Content
 
 on:
   schedule:
-    - cron: '0 7 * * 1'
+    - cron: '0 7 * * 1,4'
   push:
     branches: [main]
     paths:
@@ -50,7 +50,7 @@ jobs:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           AMAZON_STORE: www.amazon.it
           AMAZON_TAG: gta6index-21
-        run: python generator.py --niche gta6 --count 15 --output ./docs/articles --domain gta6-index.com
+        run: python generator.py --niche gta6 --count 10 --output ./docs/articles --domain gta6-index.com
 
       - name: Commit and push generated content
         if: github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && inputs.generate_articles)
