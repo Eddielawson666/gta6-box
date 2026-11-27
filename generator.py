@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""GTA6 Index content engine v2.6. Python 3.11+, OpenAI SDK; no extra dependencies."""
+"""GTA6 Index content engine v2.8. Python 3.11+, OpenAI SDK; no extra dependencies."""
 import argparse
 import json
 import os
@@ -384,6 +384,190 @@ def affiliate_block(data):
     return '<p>As an Amazon Associate I earn from qualifying purchases.</p><p><a rel="sponsored nofollow" href="'+escape(href,quote=True)+'">Browse '+escape(product)+' on '+escape(host.removeprefix('www.'))+' (paid link)</a>.</p>'
 
 
+# Google CMP + basic Analytics gate. Existing v2.7 markers are migrated in place.
+ANALYTICS_START = '<!-- GTA6-ANALYTICS:START -->'
+ANALYTICS_END = '<!-- GTA6-ANALYTICS:END -->'
+PRIVACY_START = '<!-- GTA6-PRIVACY-LINK:START -->'
+PRIVACY_END = '<!-- GTA6-PRIVACY-LINK:END -->'
+ADS_TAG = '<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9593748009949134" crossorigin="anonymous"></script>'
+ADS_RE = re.compile(r'<script\b[^>]*\bsrc\s*=\s*["\']https://pagead2\.googlesyndication\.com/pagead/js/adsbygoogle\.js\?client=ca-pub-9593748009949134["\'][^>]*>\s*</script\s*>', re.I)
+ANALYTICS_JS = r"""
+(function () {
+  'use strict';
+  const id = 'G-9YHSQK7M77';
+  const key = 'gta6-analytics-consent-v2';
+  const lifetime = 180 * 24 * 60 * 60 * 1000;
+  let region = 'unknown', tcGranted = false, modeStatus = null;
+  let started = false, active = false, choice = null, box, settings;
+  let listenerRegistered = false, modeReady = false;
+  window['ga-disable-' + id] = true;
+  window.dataLayer = window.dataLayer || [];
+  window.gtag = window.gtag || function () { window.dataLayer.push(arguments); };
+  // Initial values must precede the AdSense/CMP tag. Never grant ad consent ourselves.
+  window.gtag('consent', 'default', {analytics_storage:'denied', ad_storage:'denied', ad_user_data:'denied', ad_personalization:'denied'});
+  window.googlefc = window.googlefc || {};
+  window.googlefc.callbackQueue = window.googlefc.callbackQueue || [];
+  try { localStorage.removeItem('gta6-analytics-consent-v1'); } catch (_) {}
+  function readChoice() {
+    try {
+      const saved = JSON.parse(localStorage.getItem(key) || 'null');
+      if (saved && ['granted','denied'].includes(saved.value) && Number.isFinite(saved.expires) && saved.expires > Date.now()) return saved.value;
+      localStorage.removeItem(key);
+    } catch (_) {}
+    return null;
+  }
+  function clearAnalyticsCookies() {
+    const names = document.cookie.split(';').map(s => s.trim().split('=')[0]).filter(n => n === '_ga' || n.startsWith('_ga_'));
+    for (const name of names) for (const domain of ['', location.hostname, '.' + location.hostname, 'gta6-index.com', '.gta6-index.com']) {
+      document.cookie = name + '=; Max-Age=0; Path=/; SameSite=Lax' + (domain ? '; Domain=' + domain : '') + (location.protocol === 'https:' ? '; Secure' : '');
+    }
+  }
+  function stopAnalytics(clear) {
+    window['ga-disable-' + id] = true;
+    if (active) window.gtag('consent', 'update', {analytics_storage:'denied'});
+    active = false;
+    if (clear) clearAnalyticsCookies();
+  }
+  function startAnalytics() {
+    if (active) return;
+    active = true;
+    window['ga-disable-' + id] = false;
+    window.gtag('consent', 'update', {analytics_storage:'granted'});
+    if (started) return;
+    started = true;
+    window.gtag('js', new Date());
+    window.gtag('config', id, {
+      allow_google_signals:false, allow_ad_personalization_signals:false,
+      cookie_expires:15552000, cookie_update:false,
+      page_location:location.origin + location.pathname,
+      page_referrer:document.referrer.split(/[?#]/)[0]
+    });
+    const tag = document.createElement('script');
+    tag.async = true;
+    tag.src = 'https://www.googletagmanager.com/gtag/js?id=' + encodeURIComponent(id);
+    document.head.appendChild(tag);
+  }
+  function refreshMode() {
+    if (!modeReady) return;
+    try {
+      const values = window.googlefc.getGoogleConsentModeValues();
+      const states = window.googlefc.ConsentModePurposeStatusEnum;
+      const status = values.analyticsStoragePurposeConsentStatus;
+      if (typeof status !== 'number') { modeStatus = null; return; }
+      modeStatus = status === states.CONSENT_MODE_PURPOSE_STATUS_GRANTED ? 'granted' :
+        status === states.CONSENT_MODE_PURPOSE_STATUS_NOT_APPLICABLE ? 'outside' :
+        status === states.CONSENT_MODE_PURPOSE_STATUS_DENIED ? 'denied' : null;
+    } catch (_) { modeStatus = null; }
+  }
+  function reconcile() {
+    refreshMode();
+    // A positive CMP determination is required, never a timeout or missing CMP.
+    const outside = region !== 'eu' && modeStatus === 'outside';
+    if (outside) {
+      if (choice === null) choice = readChoice();
+      if (settings) settings.hidden = false;
+      if (box) box.hidden = choice !== null;
+      if (choice === 'granted') startAnalytics(); else stopAnalytics(true);
+    } else {
+      if (settings) settings.hidden = true;
+      if (box) box.hidden = true;
+      if (region === 'eu' && tcGranted && modeStatus === 'granted') startAnalytics();
+      else stopAnalytics(region === 'eu' && modeStatus === 'denied');
+    }
+  }
+  function tcfEvent(data, success) {
+    if (!success || !data) { region = 'unknown'; tcGranted = false; stopAnalytics(false); return; }
+    if (data.gdprApplies === true) {
+      region = 'eu';
+      if (data.eventStatus === 'cmpuishown') {
+        tcGranted = false;
+        stopAnalytics(false);
+        if (box) box.hidden = true;
+        if (settings) settings.hidden = true;
+        return;
+      }
+      if (data.cmpStatus !== 'loaded' || !['tcloaded','useractioncomplete'].includes(data.eventStatus)) {
+        tcGranted = false; stopAnalytics(false); return;
+      }
+      const purposes = data.publisher && data.publisher.consents;
+      tcGranted = !!(purposes && purposes[1] === true && purposes[8] === true);
+      if (!tcGranted) stopAnalytics(true);
+    } else if (data.gdprApplies === false) { region = 'outside'; tcGranted = false; }
+    else { region = 'unknown'; tcGranted = false; stopAnalytics(false); return; }
+    reconcile();
+    // The CMP may publish Consent Mode values just after the TCF event.
+    setTimeout(reconcile, 0); setTimeout(reconcile, 250);
+  }
+  function registerListener() {
+    if (listenerRegistered || typeof window.__tcfapi !== 'function') return;
+    listenerRegistered = true;
+    try { window.__tcfapi('addEventListener', 0, tcfEvent); }
+    catch (_) { listenerRegistered = false; }
+  }
+  window.googlefc.callbackQueue.push({CONSENT_API_READY: registerListener});
+  window.googlefc.callbackQueue.push({CONSENT_MODE_DATA_READY: function () {
+    modeReady = true; registerListener(); reconcile();
+  }});
+  function setup() {
+    const style = document.createElement('style');
+    style.textContent = '#gta6-consent-box{position:fixed;bottom:16px;left:16px;right:16px;max-width:620px;margin:0 auto;z-index:2147483640;padding:18px;background:#fff;color:#202124;border:1px solid #aaa;border-radius:12px;box-shadow:0 4px 24px #0005;font:15px/1.5 system-ui,sans-serif;text-align:left}#gta6-consent-box[hidden],#gta6-consent-settings[hidden]{display:none!important}#gta6-consent-box p{font:inherit;margin:8px 0 12px;color:#202124}#gta6-consent-box a{color:#174ea6;text-decoration:underline}#gta6-consent-box button{font:600 14px system-ui,sans-serif;padding:10px 14px;background:#202124;color:#fff;border:1px solid #202124;border-radius:6px;cursor:pointer;flex:1;min-width:120px}#gta6-consent-actions{display:flex;flex-wrap:wrap;gap:8px}#gta6-consent-settings{font:inherit;color:inherit;background:transparent;border:0;text-decoration:underline;cursor:pointer;padding:8px;display:inline-block}';
+    document.head.appendChild(style);
+    box = document.createElement('section');
+    box.id = 'gta6-consent-box'; box.hidden = true;
+    box.setAttribute('aria-label','Analytics privacy choices');
+    box.innerHTML = '<strong>Analytics cookies</strong><p>With your permission, we use Google Analytics to measure page visits and interactions. You can reject optional analytics and still use the site. Your choice is saved on this browser for 180 days. Change it at any time using Analytics settings. See our <a href="/privacy.html">Privacy &amp; Cookie Policy</a>.</p><div id="gta6-consent-actions"><button type="button" data-choice="denied">Reject analytics</button><button type="button" data-choice="granted">Accept analytics</button></div>';
+    document.body.appendChild(box);
+    settings = document.createElement('button');
+    settings.type = 'button'; settings.id = 'gta6-consent-settings'; settings.textContent = 'Analytics settings'; settings.hidden = true;
+    (document.querySelector('footer') || document.body).appendChild(settings);
+    settings.addEventListener('click', function () { box.hidden = false; box.querySelector('button').focus(); });
+    for (const button of box.querySelectorAll('button[data-choice]')) button.addEventListener('click', function () {
+      refreshMode();
+      if (region === 'eu' || modeStatus !== 'outside') { box.hidden = true; return; }
+      choice = button.dataset.choice;
+      try { localStorage.setItem(key, JSON.stringify({value:choice, expires:Date.now()+lifetime})); } catch (_) {}
+      reconcile();
+    });
+    reconcile();
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', setup, {once:true}); else setup();
+}());
+"""
+
+
+def add_analytics(text):
+    """Idempotently migrate v2.7 consent, put defaults before AdSense, and link privacy."""
+    for start, end in ((ANALYTICS_START, ANALYTICS_END), (PRIVACY_START, PRIVACY_END)):
+        if text.count(start) != text.count(end) or text.count(start) > 1:
+            raise ValueError('Invalid privacy integration markers')
+        if start in text:
+            if text.index(start) > text.index(end):
+                raise ValueError('Reversed privacy integration markers')
+            text = re.sub(re.escape(start)+r'.*?'+re.escape(end), '', text, count=1, flags=re.S)
+    text = ADS_RE.sub('', text)
+    if re.search(r'googletagmanager\.com/(?:gtag/js|gtm\.js)|G-9YHSQK7M77|pagead/js/adsbygoogle\.js', text, re.I):
+        raise ValueError('Unexpected Google tag; review before adding another')
+    # Normalize whitespace left by migrations so repeated rebuilds are byte-identical.
+    head = re.search(r'<head\b[^>]*>(.*?)</head\s*>', text, re.I|re.S)
+    if not head:
+        raise ValueError('Missing head')
+    h = head.group(1).rstrip()
+    block = ANALYTICS_START+'\n<script>\n'+ANALYTICS_JS+'</script>\n'+ADS_TAG+'\n'+ANALYTICS_END
+    first_script = re.search(r'<script\b', h, re.I)
+    pos = first_script.start() if first_script else len(h)
+    before, after = h[:pos].rstrip(), h[pos:].lstrip()
+    h = before+'\n'+block+('\n'+after if after else '')+'\n'
+    text = text[:head.start(1)]+h+text[head.end(1):]
+    link = PRIVACY_START+'<div style="margin-top:8px"><a href="/privacy.html" style="color:inherit;text-decoration:underline">Privacy &amp; Cookie Policy</a></div>'+PRIVACY_END
+    if re.search(r'</footer\s*>', text, re.I):
+        text = re.sub(r'</footer\s*>', lambda m:link+m.group(), text, count=1, flags=re.I)
+    elif re.search(r'</body\s*>', text, re.I):
+        text = re.sub(r'</body\s*>', lambda m:'<footer>'+link+'</footer>'+m.group(), text, count=1, flags=re.I)
+    else:
+        raise ValueError('Missing body closing tag')
+    return text
+
+
 def render_html(data,domain):
     date=datetime.now(timezone.utc); url=f'https://{domain}/articles/{data["slug"]}.html'
     e=lambda s:escape(s,quote=True)
@@ -392,7 +576,7 @@ def render_html(data,domain):
     ld_json=json.dumps(ld,ensure_ascii=False).replace('<','\\u003c')
     faq=''.join('<details><summary>'+e(x['q'])+'</summary><p>'+e(x['a'])+'</p></details>' for x in data['faq'])
     sources=''.join('<li><a href="'+e(u)+'">'+e(t)+'</a></li>' for u,t in data['sources'])
-    return f"""<!DOCTYPE html>
+    return add_analytics(f"""<!DOCTYPE html>
 <html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>{title}</title><meta name="description" content="{desc}"><meta name="target-keyword" content="{e(data['keyword'])}">
 <link rel="canonical" href="{e(url)}"><meta property="og:title" content="{title}"><meta property="og:description" content="{desc}"><meta property="og:type" content="article"><meta property="og:url" content="{e(url)}">
@@ -403,7 +587,7 @@ def render_html(data,domain):
 {data['content_html']}{affiliate_block(data)}
 {('<h2>FAQ</h2>'+faq) if faq else ''}<h2>Sources</h2><ul>{sources}</ul>
 <div class="cta-box"><p><strong>Keep up with GTA VI guides and updates.</strong><br><a href="/newsletter.html">Join the newsletter</a></p></div>
-</div><footer>GTA6 Index · Independent site, not affiliated with Rockstar Games or Take-Two Interactive · © {date.year}</footer></body></html>"""
+</div><footer>GTA6 Index · Independent site, not affiliated with Rockstar Games or Take-Two Interactive · © {date.year}</footer></body></html>""")
 
 
 def write_changed(path,text):
@@ -417,6 +601,8 @@ def cards(items):
 
 def rebuild_site(out,domain):
     items=inventory(out); docs=out.parent
+    if not (docs/'privacy.html').is_file():
+        raise ValueError('Missing docs/privacy.html; add the privacy policy before rebuilding')
     for filename,ident,selected in [('index.html','articles-grid',items[:15]),('all-articles.html','grid',items)]:
         fp=docs/filename
         if not fp.exists():
@@ -439,9 +625,15 @@ def rebuild_site(out,domain):
         else:
             text=text.replace('Confirmed Facts, Leaks & Guides','Confirmed Facts, News & Guides').replace('Confirmed facts. Real specs. No recycled junk. Updated every Monday.','Independent GTA VI guides, confirmed news and practical tips.').replace('One email per week. Unsubscribe whenever.','Get GTA VI updates by email.')
         write_changed(fp,text)
+    # All public pages in this site, never the Italian backup directory.
+    public_pages = sorted(docs.glob('*.html')) + sorted(out.glob('*.html'))
+    pending = [(fp, add_analytics(fp.read_text(encoding='utf-8'))) for fp in public_pages]
+    for fp, text in pending:
+        write_changed(fp, text)
+    print(f'Privacy and consent integration: {len(public_pages)} public HTML pages', flush=True)
     ns='http://www.sitemaps.org/schemas/sitemap/0.9'
     root=ET.Element('urlset',xmlns=ns)
-    for rel in ('','all-articles.html','newsletter.html'):
+    for rel in ('','all-articles.html','newsletter.html','privacy.html'):
         if (docs/(rel or 'index.html')).exists():
             node=ET.SubElement(root,'url'); ET.SubElement(node,'loc').text=f'https://{domain}/{rel}'
     for a in items:

@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9593748009949134" crossorigin="anonymous"></script>
+
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Single‑Player Story vs Online Engagement: What Launch Data Shows</title>
 <meta name="description" content="Looking at real data, here’s how GTA VI’s single‑player campaign held up versus early online buzz at launch—what’s confirmed, what’s still a mystery.">
@@ -12,6 +12,152 @@
 <meta property="og:description" content="Looking at real data, here’s how GTA VI’s single‑player campaign held up versus early online buzz at launch—what’s confirmed, what’s still a mystery.">
 <meta property="og:type" content="article">
 <meta property="og:url" content="https://gta6-index.com/articles/comparison-single-player-story-vs-online-engagement-launch-data.html">
+<!-- GTA6-ANALYTICS:START -->
+<script>
+
+(function () {
+  'use strict';
+  const id = 'G-9YHSQK7M77';
+  const key = 'gta6-analytics-consent-v2';
+  const lifetime = 180 * 24 * 60 * 60 * 1000;
+  let region = 'unknown', tcGranted = false, modeStatus = null;
+  let started = false, active = false, choice = null, box, settings;
+  let listenerRegistered = false, modeReady = false;
+  window['ga-disable-' + id] = true;
+  window.dataLayer = window.dataLayer || [];
+  window.gtag = window.gtag || function () { window.dataLayer.push(arguments); };
+  // Initial values must precede the AdSense/CMP tag. Never grant ad consent ourselves.
+  window.gtag('consent', 'default', {analytics_storage:'denied', ad_storage:'denied', ad_user_data:'denied', ad_personalization:'denied'});
+  window.googlefc = window.googlefc || {};
+  window.googlefc.callbackQueue = window.googlefc.callbackQueue || [];
+  try { localStorage.removeItem('gta6-analytics-consent-v1'); } catch (_) {}
+  function readChoice() {
+    try {
+      const saved = JSON.parse(localStorage.getItem(key) || 'null');
+      if (saved && ['granted','denied'].includes(saved.value) && Number.isFinite(saved.expires) && saved.expires > Date.now()) return saved.value;
+      localStorage.removeItem(key);
+    } catch (_) {}
+    return null;
+  }
+  function clearAnalyticsCookies() {
+    const names = document.cookie.split(';').map(s => s.trim().split('=')[0]).filter(n => n === '_ga' || n.startsWith('_ga_'));
+    for (const name of names) for (const domain of ['', location.hostname, '.' + location.hostname, 'gta6-index.com', '.gta6-index.com']) {
+      document.cookie = name + '=; Max-Age=0; Path=/; SameSite=Lax' + (domain ? '; Domain=' + domain : '') + (location.protocol === 'https:' ? '; Secure' : '');
+    }
+  }
+  function stopAnalytics(clear) {
+    window['ga-disable-' + id] = true;
+    if (active) window.gtag('consent', 'update', {analytics_storage:'denied'});
+    active = false;
+    if (clear) clearAnalyticsCookies();
+  }
+  function startAnalytics() {
+    if (active) return;
+    active = true;
+    window['ga-disable-' + id] = false;
+    window.gtag('consent', 'update', {analytics_storage:'granted'});
+    if (started) return;
+    started = true;
+    window.gtag('js', new Date());
+    window.gtag('config', id, {
+      allow_google_signals:false, allow_ad_personalization_signals:false,
+      cookie_expires:15552000, cookie_update:false,
+      page_location:location.origin + location.pathname,
+      page_referrer:document.referrer.split(/[?#]/)[0]
+    });
+    const tag = document.createElement('script');
+    tag.async = true;
+    tag.src = 'https://www.googletagmanager.com/gtag/js?id=' + encodeURIComponent(id);
+    document.head.appendChild(tag);
+  }
+  function refreshMode() {
+    if (!modeReady) return;
+    try {
+      const values = window.googlefc.getGoogleConsentModeValues();
+      const states = window.googlefc.ConsentModePurposeStatusEnum;
+      const status = values.analyticsStoragePurposeConsentStatus;
+      if (typeof status !== 'number') { modeStatus = null; return; }
+      modeStatus = status === states.CONSENT_MODE_PURPOSE_STATUS_GRANTED ? 'granted' :
+        status === states.CONSENT_MODE_PURPOSE_STATUS_NOT_APPLICABLE ? 'outside' :
+        status === states.CONSENT_MODE_PURPOSE_STATUS_DENIED ? 'denied' : null;
+    } catch (_) { modeStatus = null; }
+  }
+  function reconcile() {
+    refreshMode();
+    // A positive CMP determination is required, never a timeout or missing CMP.
+    const outside = region !== 'eu' && modeStatus === 'outside';
+    if (outside) {
+      if (choice === null) choice = readChoice();
+      if (settings) settings.hidden = false;
+      if (box) box.hidden = choice !== null;
+      if (choice === 'granted') startAnalytics(); else stopAnalytics(true);
+    } else {
+      if (settings) settings.hidden = true;
+      if (box) box.hidden = true;
+      if (region === 'eu' && tcGranted && modeStatus === 'granted') startAnalytics();
+      else stopAnalytics(region === 'eu' && modeStatus === 'denied');
+    }
+  }
+  function tcfEvent(data, success) {
+    if (!success || !data) { region = 'unknown'; tcGranted = false; stopAnalytics(false); return; }
+    if (data.gdprApplies === true) {
+      region = 'eu';
+      if (data.eventStatus === 'cmpuishown') {
+        tcGranted = false;
+        stopAnalytics(false);
+        if (box) box.hidden = true;
+        if (settings) settings.hidden = true;
+        return;
+      }
+      if (data.cmpStatus !== 'loaded' || !['tcloaded','useractioncomplete'].includes(data.eventStatus)) {
+        tcGranted = false; stopAnalytics(false); return;
+      }
+      const purposes = data.publisher && data.publisher.consents;
+      tcGranted = !!(purposes && purposes[1] === true && purposes[8] === true);
+      if (!tcGranted) stopAnalytics(true);
+    } else if (data.gdprApplies === false) { region = 'outside'; tcGranted = false; }
+    else { region = 'unknown'; tcGranted = false; stopAnalytics(false); return; }
+    reconcile();
+    // The CMP may publish Consent Mode values just after the TCF event.
+    setTimeout(reconcile, 0); setTimeout(reconcile, 250);
+  }
+  function registerListener() {
+    if (listenerRegistered || typeof window.__tcfapi !== 'function') return;
+    listenerRegistered = true;
+    try { window.__tcfapi('addEventListener', 0, tcfEvent); }
+    catch (_) { listenerRegistered = false; }
+  }
+  window.googlefc.callbackQueue.push({CONSENT_API_READY: registerListener});
+  window.googlefc.callbackQueue.push({CONSENT_MODE_DATA_READY: function () {
+    modeReady = true; registerListener(); reconcile();
+  }});
+  function setup() {
+    const style = document.createElement('style');
+    style.textContent = '#gta6-consent-box{position:fixed;bottom:16px;left:16px;right:16px;max-width:620px;margin:0 auto;z-index:2147483640;padding:18px;background:#fff;color:#202124;border:1px solid #aaa;border-radius:12px;box-shadow:0 4px 24px #0005;font:15px/1.5 system-ui,sans-serif;text-align:left}#gta6-consent-box[hidden],#gta6-consent-settings[hidden]{display:none!important}#gta6-consent-box p{font:inherit;margin:8px 0 12px;color:#202124}#gta6-consent-box a{color:#174ea6;text-decoration:underline}#gta6-consent-box button{font:600 14px system-ui,sans-serif;padding:10px 14px;background:#202124;color:#fff;border:1px solid #202124;border-radius:6px;cursor:pointer;flex:1;min-width:120px}#gta6-consent-actions{display:flex;flex-wrap:wrap;gap:8px}#gta6-consent-settings{font:inherit;color:inherit;background:transparent;border:0;text-decoration:underline;cursor:pointer;padding:8px;display:inline-block}';
+    document.head.appendChild(style);
+    box = document.createElement('section');
+    box.id = 'gta6-consent-box'; box.hidden = true;
+    box.setAttribute('aria-label','Analytics privacy choices');
+    box.innerHTML = '<strong>Analytics cookies</strong><p>With your permission, we use Google Analytics to measure page visits and interactions. You can reject optional analytics and still use the site. Your choice is saved on this browser for 180 days. Change it at any time using Analytics settings. See our <a href="/privacy.html">Privacy &amp; Cookie Policy</a>.</p><div id="gta6-consent-actions"><button type="button" data-choice="denied">Reject analytics</button><button type="button" data-choice="granted">Accept analytics</button></div>';
+    document.body.appendChild(box);
+    settings = document.createElement('button');
+    settings.type = 'button'; settings.id = 'gta6-consent-settings'; settings.textContent = 'Analytics settings'; settings.hidden = true;
+    (document.querySelector('footer') || document.body).appendChild(settings);
+    settings.addEventListener('click', function () { box.hidden = false; box.querySelector('button').focus(); });
+    for (const button of box.querySelectorAll('button[data-choice]')) button.addEventListener('click', function () {
+      refreshMode();
+      if (region === 'eu' || modeStatus !== 'outside') { box.hidden = true; return; }
+      choice = button.dataset.choice;
+      try { localStorage.setItem(key, JSON.stringify({value:choice, expires:Date.now()+lifetime})); } catch (_) {}
+      reconcile();
+    });
+    reconcile();
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', setup, {once:true}); else setup();
+}());
+</script>
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9593748009949134" crossorigin="anonymous"></script>
+<!-- GTA6-ANALYTICS:END -->
 <script type="application/ld+json">
 {"@context":"https://schema.org","@type":"Article","headline":"Single‑Player Story vs Online Engagement: What Launch Data Shows","description":"Looking at real data, here’s how GTA VI’s single‑player campaign held up versus early online buzz at launch—what’s confirmed, what’s still a mystery.","datePublished":"2026-11-24T21:47:55.730991","author":{"@type":"Person","name":"GTA6 Index Team"},"mainEntityOfPage":"https://gta6-index.com/articles/comparison-single-player-story-vs-online-engagement-launch-data.html"}
 </script>
@@ -90,7 +236,7 @@ footer{text-align:center;padding:30px 20px;color:#aaa;font-size:.8rem;border-top
   <div class="cta-box"><p><strong>Keep up with GTA VI guides and updates.</strong><br><a href="/newsletter.html">Join the newsletter — no spam, just the good stuff →</a></p></div>
   <div class="ad-slot">AdSense — footer</div>
 </div>
-<footer>GTA6 Index · Not affiliated with Rockstar Games or Take-Two Interactive · © 2026</footer>
+<footer>GTA6 Index · Not affiliated with Rockstar Games or Take-Two Interactive · © 2026<!-- GTA6-PRIVACY-LINK:START --><div style="margin-top:8px"><a href="/privacy.html" style="color:inherit;text-decoration:underline">Privacy &amp; Cookie Policy</a></div><!-- GTA6-PRIVACY-LINK:END --></footer>
 </div>
 </body>
 </html>
